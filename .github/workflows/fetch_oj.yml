@@ -1,0 +1,25 @@
+name: fetch-oj-data
+on:
+  push:
+    paths:
+      - .github/workflows/fetch_oj.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download immutable source
+        run: |
+          curl --fail --location --retry 5 --output oj_large.csv "https://raw.githubusercontent.com/py-why/EconML/cb6771dd38c02bf2a99f2c73094a3baf80ad3af3/datasets/OrangeJuice/oj_large.csv"
+          echo "c59263d1181f7c5f028e732569b05a87344a5d5a394f744e8bcbe39b9f0ff03d  oj_large.csv" | sha256sum --check
+          test "$(wc -c < oj_large.csv)" -eq 4451105
+          test "$(wc -l < oj_large.csv)" -eq 28948
+      - name: Upload verified data
+        uses: actions/upload-artifact@v4
+        with:
+          name: oj-large-verified
+          path: oj_large.csv
+          if-no-files-found: error
+          retention-days: 30
